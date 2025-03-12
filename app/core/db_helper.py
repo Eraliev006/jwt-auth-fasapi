@@ -21,28 +21,27 @@ class DatabaseHelper:
     ):
         db_helper_logger.info('Create async engine')
         self.engine: AsyncEngine = create_async_engine(
-            url = url,
-            pool_size = pool_size,
-            echo = echo,
-            max_overflow = max_overflow,
-            echo_pool = echo_pool
+            url,
+            echo=echo,
+            echo_pool=echo_pool,
+            pool_size=pool_size,
+            max_overflow=max_overflow
         )
 
         db_helper_logger.info('create async session')
-        self.session_factory: async_sessionmaker[AsyncSession] =async_sessionmaker(
-            bind = self.engine,
-            expire_on_commit = False,
+        self.session_factory: async_sessionmaker[AsyncSession] = async_sessionmaker(
+            bind=self.engine,
             autoflush = False,
-            autocommit = False
+            autocommit = False,
+            expire_on_commit = False
         )
 
     async def dispose(self):
         db_helper_logger.info('Dispose connection with db')
-        return await self.engine.dispose()
+        await self.engine.dispose()
 
-    @property
-    async def session_getter(self) -> AsyncGenerator[AsyncSession]:
-        async with self.session_factory as session:
+    async def session_getter(self) -> AsyncGenerator[AsyncSession, None]:
+        async with self.session_factory() as session:
             db_helper_logger.info('returning session')
             yield session
 
