@@ -7,6 +7,7 @@ class User(SQLModel, table = True):
     password_hash: str
     email: str = Field(unique=True)
     avatar_url: str
+    is_verified: bool = Field(default=False)
 
 
 
