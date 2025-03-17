@@ -4,7 +4,9 @@ from logging import getLogger
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine, async_sessionmaker, AsyncSession
 
 from app.core import settings
-import app.logger
+from logging_config import setup_logging
+
+setup_logging()
 
 db_helper_logger = getLogger('project.database_helper')
 
@@ -42,7 +44,7 @@ class DatabaseHelper:
 
     async def session_getter(self) -> AsyncGenerator[AsyncSession, None]:
         async with self.session_factory() as session:
-            db_helper_logger.info('returning session')
+            db_helper_logger.info('yield session')
             yield session
 
 db_helper = DatabaseHelper(settings.db.db_url,echo_pool=True)

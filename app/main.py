@@ -7,7 +7,10 @@ from fastapi import FastAPI
 from app.core import db_helper
 from core import settings
 from api import router
-import logger
+
+from logging_config import setup_logging
+
+setup_logging()
 
 main_logger = getLogger('project.main')
 
