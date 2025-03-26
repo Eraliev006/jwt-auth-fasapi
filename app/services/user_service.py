@@ -1,27 +1,18 @@
 from logging import getLogger
 from typing import Optional
-from urllib.parse import urlencode
 
-import bcrypt
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
-from app.core import settings
-from app.exceptions import UserWithEmailAlreadyExists
 from app.models import User
-from app.services import send_email
-from app.utils import generate_verify_link, generate_email_verify_token
 from logging_config import setup_logging
 from app.schemas import CreateUserSchema, OutputUserSchema
 
 setup_logging()
 user_service_logger = getLogger('project.user_service')
 
-def _hash_password(password: str) -> str:
-    user_service_logger.info('Hashing password')
-    salt = bcrypt.gensalt()
-    return bcrypt.hashpw(password.encode(), salt).decode()
+
 
 async def get_user_by_email(email: str, session: AsyncSession) -> Optional[User]:
     try:
@@ -39,34 +30,12 @@ async def get_user_by_email(email: str, session: AsyncSession) -> Optional[User]
         user_service_logger.exception("Some problem with db: ")
         raise
 
-def _send_email(email: str, user_id: int):
-    token = generate_email_verify_token({'sub': email,'user_id': int})
-    link = generate_verify_link(token)
-    send_email(email, 'Confirm email',
-               body=f"Hello press the link to confirm your gmail: {link}")
-
-
-async def create_user(session: AsyncSession, user: CreateUserSchema) -> OutputUserSchema:
-    user_service_logger.info('creating user, and save to db')
+async def create_user(session: AsyncSession, user: User) -> OutputUserSchema:
 
     try:
-        exists_user = await get_user_by_email(user.email, session)
-        if exists_user is not None:
-            user_service_logger.error('User with same email already exists')
-            raise UserWithEmailAlreadyExists(f'User with email {user.email} already exists')
-
-        hashed_password: str = _hash_password(password=user.password)
-
-        user = User(
-            **user.model_dump(exclude={'password'}),
-            password_hash = hashed_password
-        )
-
-        user_service_logger.info('Call send email function')
-
-        _send_email(user.email, user.id)
-
-        user_service_logger.info('email function ended')
+        user_service_logger.info('save user to db')
+        user_service_logger.debug(user)
+        user = User(**user.model_dump())
 
         session.add(user)
         await session.commit()
