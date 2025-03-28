@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import db_helper
 from app.schemas import CreateUserSchema, LoginUserSchema
-from app.services import register_user
+from app.services import register_user, verify_user
 
 router = APIRouter(
     tags=['JWT Auth'],
@@ -25,5 +25,5 @@ async def login_user(user_login: LoginUserSchema, session: SESSION_DEP):
 
 @router.get('/verify-email')
 async def verify_email(token: str, session: SESSION_DEP):
-    print('verify')
+    return await verify_user(token, session)
 
