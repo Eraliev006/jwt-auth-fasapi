@@ -1,14 +1,15 @@
 from logging import getLogger
-from typing import Optional
+from typing import Optional, Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.exceptions import UserWithEmailAlreadyExists
 from app.models import User
 from app.schemas import CreateUserSchema, OutputUserSchema
-from app.services import send_email, create_user
+from app.services import send_email, create_user, get_user_by_id
 from app.services import get_user_by_email
-from app.utils import generate_email_verify_token, generate_verify_link
+from app.services.user_service import change_user_verify_status
+from app.utils import generate_email_verify_token, generate_verify_link, decode_jwt_token
 from app.utils import hash_password
 
 from logging_config import setup_logging
@@ -28,7 +29,7 @@ async def register_user(user: CreateUserSchema, session: AsyncSession) -> Output
 
     auth_service_logger.info('Call create user method')
 
-    created_user: Optional[OutputUserSchema] = await create_user(
+    created_user: Optional[User] = await create_user(
         session,
         User(
             **user.model_dump(exclude={'password'}),
@@ -49,5 +50,15 @@ async def register_user(user: CreateUserSchema, session: AsyncSession) -> Output
 
     auth_service_logger.info('email function ended')
 
-    return created_user
+    return OutputUserSchema(**created_user.model_dump())
 
+async def verify_user(token: str, session: AsyncSession) -> OutputUserSchema:
+    auth_service_logger.info('Verifying user')
+    payload: dict[str, Any] = decode_jwt_token(
+        token,
+    )
+    user_id: int = payload['user_id']
+    user: User = await get_user_by_id(user_id, session)
+    await change_user_verify_status(user, session)
+    auth_service_logger.info('User verifying status changed to True')
+    return OutputUserSchema(**user.model_dump())
