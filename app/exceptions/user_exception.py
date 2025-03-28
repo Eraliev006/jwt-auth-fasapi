@@ -4,3 +4,6 @@ class UserWithEmailAlreadyExists(Exception):
 
 class UserWithEmailNotFound(Exception):
     pass
+
+class UserWithIdNotFound(Exception):
+    pass
