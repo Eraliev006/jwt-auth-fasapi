@@ -3,3 +3,6 @@ class ExpireSignatureError(Exception):
 
 class InvalidTokenError(Exception):
     pass
+
+class InvalidSignatureError(Exception):
+    pass
