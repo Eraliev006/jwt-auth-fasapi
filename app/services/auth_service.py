@@ -1,3 +1,6 @@
+import datetime
+import enum
+from datetime import timedelta
 from logging import getLogger
 from typing import Optional, Any
 
@@ -5,17 +8,22 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.exceptions import UserWithEmailAlreadyExists, UserWithEmailNotFound, PasswordIsIncorrect
 from app.models import User
-from app.schemas import CreateUserSchema, OutputUserSchema, LoginUserSchema
+from app.schemas import CreateUserSchema, OutputUserSchema, LoginUserSchema, LoginOutputSchema
 from app.services import send_email, create_user, get_user_by_id
 from app.services import get_user_by_email
 from app.services.user_service import change_user_verify_status
-from app.utils import generate_email_verify_token, generate_verify_link, decode_jwt_token, password_is_correct
+from app.utils import generate_email_verify_token, generate_verify_link, decode_jwt_token, password_is_correct, \
+    create_token
 from app.utils import hash_password
 
 from logging_config import setup_logging
 
 setup_logging()
 auth_service_logger = getLogger('project.auth_service')
+
+class TokenType(enum.Enum):
+    ACCESS = 'access'
+    REFRESH = 'refresh'
 
 async def register_user(user: CreateUserSchema, session: AsyncSession) -> OutputUserSchema:
     auth_service_logger.info('Register user')
@@ -67,7 +75,7 @@ async def verify_user(token: str, session: AsyncSession) -> OutputUserSchema:
     auth_service_logger.info('User verifying status changed to True')
     return OutputUserSchema(**user.model_dump())
 
-async def login_user(user_login: LoginUserSchema, session: AsyncSession) -> str:
+async def login_user(user_login: LoginUserSchema, session: AsyncSession) -> LoginOutputSchema:
     auth_service_logger.info('Login user')
     email, password = user_login.email, user_login.password
 
@@ -85,4 +93,26 @@ async def login_user(user_login: LoginUserSchema, session: AsyncSession) -> str:
         auth_service_logger.error('Password is incorrect')
         raise PasswordIsIncorrect('Password is incorrect')
 
-    return 'Correct'
+    payload = {
+        'sub': user,
+    }
+
+    access_token = create_token(
+        payload={
+            **payload,
+            'exp': datetime.datetime.now(datetime.UTC) + timedelta(minutes=1),
+            'type': TokenType.ACCESS,
+        }
+    )
+    refresh_token = create_token(
+        payload={
+            **payload,
+            'exp': datetime.datetime.now(datetime.UTC) + timedelta(minutes=3),
+            'type': TokenType.ACCESS,
+        }
+    )
+
+    return LoginOutputSchema(
+        refresh_token = refresh_token,
+        access_token = access_token
+    )
