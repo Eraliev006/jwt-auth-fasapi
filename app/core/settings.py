@@ -15,6 +15,10 @@ class SMTPSettings(BaseModel):
     smtp_login: str
     smtp_password: str
 
+class RedisSettings(BaseModel):
+    redis_host: str
+    redis_port: int
+
 class JWTSettings(BaseModel):
     secret_key: str
     algorithm: str
@@ -25,6 +29,7 @@ class Settings(BaseSettings):
     db: DBSettings
     smtp: SMTPSettings
     jwt: JWTSettings
+    redis: RedisSettings
     api_prefix: str = '/api/v1'
     HOST: str
     PORT: int
