@@ -6,3 +6,9 @@ class InvalidTokenError(Exception):
 
 class InvalidSignatureError(Exception):
     pass
+
+class PasswordIsIncorrect(Exception):
+    pass
+
+class UserNotVerifyEmail(Exception):
+    pass
