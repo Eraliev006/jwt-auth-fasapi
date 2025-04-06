@@ -3,13 +3,13 @@ from typing import Optional, Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.exceptions import UserWithEmailAlreadyExists
+from app.exceptions import UserWithEmailAlreadyExists, UserWithEmailNotFound, PasswordIsIncorrect
 from app.models import User
-from app.schemas import CreateUserSchema, OutputUserSchema
+from app.schemas import CreateUserSchema, OutputUserSchema, LoginUserSchema
 from app.services import send_email, create_user, get_user_by_id
 from app.services import get_user_by_email
 from app.services.user_service import change_user_verify_status
-from app.utils import generate_email_verify_token, generate_verify_link, decode_jwt_token
+from app.utils import generate_email_verify_token, generate_verify_link, decode_jwt_token, password_is_correct
 from app.utils import hash_password
 
 from logging_config import setup_logging
@@ -18,6 +18,8 @@ setup_logging()
 auth_service_logger = getLogger('project.auth_service')
 
 async def register_user(user: CreateUserSchema, session: AsyncSession) -> OutputUserSchema:
+    auth_service_logger.info('Register user')
+
     auth_service_logger.info('Checking is user with email already exists')
     exists_user: Optional[User] = await get_user_by_email(user.email, session)
 
@@ -25,7 +27,8 @@ async def register_user(user: CreateUserSchema, session: AsyncSession) -> Output
         auth_service_logger.error('User with same email already exists')
         raise UserWithEmailAlreadyExists(f'User with email {user.email} already exists')
 
-    hashed_password: str = hash_password(user.password)
+    hashed_password: bytes = hash_password(user.password)
+    hashed_password: str = hashed_password.decode()
 
     auth_service_logger.info('Call create user method')
 
@@ -50,6 +53,7 @@ async def register_user(user: CreateUserSchema, session: AsyncSession) -> Output
 
     auth_service_logger.info('email function ended')
 
+    auth_service_logger.info('Register function is end')
     return OutputUserSchema(**created_user.model_dump())
 
 async def verify_user(token: str, session: AsyncSession) -> OutputUserSchema:
@@ -62,3 +66,23 @@ async def verify_user(token: str, session: AsyncSession) -> OutputUserSchema:
     await change_user_verify_status(user, session)
     auth_service_logger.info('User verifying status changed to True')
     return OutputUserSchema(**user.model_dump())
+
+async def login_user(user_login: LoginUserSchema, session: AsyncSession) -> str:
+    auth_service_logger.info('Login user')
+    email, password = user_login.email, user_login.password
+
+    user = await get_user_by_email(email, session)
+    if user is None:
+        auth_service_logger.error('User with this email is not exists')
+        raise UserWithEmailNotFound(f'User with email-{email} not found')
+
+    user_password = user.password_hash
+
+    is_password_correct:bool = password_is_correct(password.encode(), user_password.encode())
+    auth_service_logger.debug(f'{is_password_correct=}')
+
+    if not is_password_correct:
+        auth_service_logger.error('Password is incorrect')
+        raise PasswordIsIncorrect('Password is incorrect')
+
+    return 'Correct'
