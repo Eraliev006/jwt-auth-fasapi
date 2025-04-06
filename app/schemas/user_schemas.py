@@ -13,6 +13,3 @@ class OutputUserSchema(__BaseUserSchema):
     id: int
     is_verified: bool
 
-class LoginUserSchema(SQLModel):
-    email: str
-    password: str
