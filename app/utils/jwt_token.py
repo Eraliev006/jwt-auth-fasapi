@@ -31,6 +31,19 @@ def generate_email_verify_token(
 
     return token
 
+def create_token(
+        payload: dict[str, Any],
+        secret_key: str = settings.jwt.secret_key,
+        algorithm: str = settings.jwt.algorithm
+) -> str:
+    jwt_token_utils_logger.info('Generate token')
+    token = jwt.encode(
+        payload=payload,
+        key = secret_key,
+        algorithm=algorithm
+    )
+    return token
+
 def decode_jwt_token(
         token: str,
         secret_key: str = settings.jwt.secret_key,
