@@ -20,7 +20,7 @@ async def lifespan(app:FastAPI):
 
     # dispose connection with db
     main_logger.info('dispose connection with db')
-    db_helper.dispose()
+    await db_helper.dispose()
 
 app = FastAPI(lifespan=lifespan)
 app.include_router(router)
