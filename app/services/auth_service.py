@@ -94,21 +94,21 @@ async def login_user(user_login: LoginUserSchema, session: AsyncSession) -> Logi
         raise PasswordIsIncorrect('Password is incorrect')
 
     payload = {
-        'sub': user,
+        'sub': user.id,
     }
 
     access_token = create_token(
         payload={
             **payload,
             'exp': datetime.datetime.now(datetime.UTC) + timedelta(minutes=1),
-            'type': TokenType.ACCESS,
+            'type': TokenType.ACCESS.value,
         }
     )
     refresh_token = create_token(
         payload={
             **payload,
             'exp': datetime.datetime.now(datetime.UTC) + timedelta(minutes=3),
-            'type': TokenType.ACCESS,
+            'type': TokenType.REFRESH.value,
         }
     )
 
