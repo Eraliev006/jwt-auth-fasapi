@@ -1,3 +1,4 @@
+from datetime import timedelta
 from logging import getLogger
 
 import redis.asyncio as redis
@@ -7,7 +8,7 @@ from app.core import settings
 from logging_config import setup_logging
 setup_logging()
 
-redis_logger = getLogger()
+redis_logger = getLogger('project.redis_client')
 
 class RedisClient:
     def __init__(self, host:str, port: int, decode_response: bool = True):
@@ -18,7 +19,7 @@ class RedisClient:
             decode_responses=decode_response
         )
 
-    async def set_data(self, key: str, value:str, expire: int):
+    async def set_data(self, key: str, value:str, expire: int | timedelta):
         redis_logger.info('Create new data in redis')
         return await self.redis_client.set(
             name=key,
@@ -26,11 +27,11 @@ class RedisClient:
             ex=expire
         )
 
-    async def get_data(self, key: str):
+    async def get_data(self, key: str) -> str | None:
         redis_logger.info('Get data from redis')
         return await self.redis_client.get(name=key)
 
-    async def delete_data(self, key: str | list[str]):
+    async def delete_data(self, key: str | list[str]) -> None:
         if isinstance(key, list):
             return await self.redis_client.delete(*key)
         return await self.redis_client.delete(key)
