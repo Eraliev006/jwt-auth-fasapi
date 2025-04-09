@@ -12,3 +12,9 @@ class PasswordIsIncorrect(Exception):
 
 class UserNotVerifyEmail(Exception):
     pass
+
+class InvalidTokenType(Exception):
+    pass
+
+class RefreshTokenIsNotExists(Exception):
+    pass
