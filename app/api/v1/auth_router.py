@@ -6,7 +6,7 @@ from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import db_helper, security
-from app.exceptions import UserWithIdNotFound, UserNotVerifyEmail
+from app.exceptions import UserNotVerifiedEmail
 from app.schemas import CreateUserSchema, LoginUserSchema
 from app.services import register_user, verify_user, login_user, get_user_by_email, refresh_pair_of_tokens
 
@@ -18,11 +18,8 @@ router = APIRouter(
 SESSION_DEP = Annotated[AsyncSession, Depends(db_helper.session_getter)]
 async def check_is_user_verify_email(user_login: LoginUserSchema, session: SESSION_DEP):
     user = await get_user_by_email(user_login.email, session)
-    if not user:
-        raise UserWithIdNotFound('User with email not found')
-
     if not user.is_verified:
-        raise UserNotVerifyEmail('Please first verify your email')
+        raise UserNotVerifiedEmail
 
 
 @router.post('/register')
