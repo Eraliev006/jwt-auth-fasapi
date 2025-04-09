@@ -70,37 +70,12 @@ async def get_user_by_id(user_id:int, session: AsyncSession) -> User:
     user_service_logger.info('Returning user by id')
     return user
 
-
-
 async def change_user_verify_status(user: User, session: AsyncSession):
     user_service_logger.info('Change user is_verify status')
     try:
         user.is_verified = True
         user_service_logger.info('user is_verify status changed')
         await session.commit()
-    except SQLAlchemyError as e:
-        user_service_logger.exception('Exception with db:')
-        raise e
-
-async def delete_user(user_id: int, session: AsyncSession) -> None:
-    try:
-        user_service_logger.info('Try to delete user by id')
-        user: User = await get_user_by_id(user_id, session)
-        await session.delete(user)
-        await session.commit()
-        user_service_logger.info('User successfully deleted')
-    except SQLAlchemyError as e:
-        user_service_logger.exception('Exception with db:')
-        raise e
-
-async def get_all_users(session: AsyncSession) -> list[OutputUserSchema]:
-    try:
-        stmt = select(User)
-        result: Result = await session.execute(stmt)
-        users: list[User] = list(result.scalars().all())
-
-        return [OutputUserSchema(**user.model_dump()) for user in users]
-
     except SQLAlchemyError as e:
         user_service_logger.exception('Exception with db:')
         raise e
