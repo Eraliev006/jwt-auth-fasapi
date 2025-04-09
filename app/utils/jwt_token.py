@@ -6,7 +6,7 @@ import jwt
 from datetime import timedelta
 
 from app.core import settings
-from app.exceptions import ExpireSignatureError, InvalidTokenError, InvalidSignatureError
+from app.exceptions import InvalidTokenError, InvalidSignatureError, ExpiredSignatureError
 from logging_config import setup_logging
 
 setup_logging()
@@ -58,10 +58,10 @@ def decode_jwt_token(
         return decoded
     except jwt.ExpiredSignatureError:
         jwt_token_utils_logger.exception('Token has expired.')
-        raise ExpireSignatureError('Token has expired.')
+        raise ExpiredSignatureError
     except jwt.InvalidSignatureError:
         jwt_token_utils_logger.exception('Invalid token signature.')
-        raise InvalidSignatureError('Invalid token signature.')
+        raise InvalidSignatureError
     except jwt.InvalidTokenError:
         jwt_token_utils_logger.exception('Token is invalid.')
-        raise InvalidTokenError('Token is invalid.')
+        raise InvalidTokenError
