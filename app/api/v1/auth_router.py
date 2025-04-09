@@ -2,12 +2,13 @@ from typing import Annotated
 
 from fastapi import APIRouter, Form
 from fastapi.params import Depends
+from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core import db_helper
+from app.core import db_helper, security
 from app.exceptions import UserWithIdNotFound, UserNotVerifyEmail
 from app.schemas import CreateUserSchema, LoginUserSchema
-from app.services import register_user, verify_user, login_user, get_user_by_email
+from app.services import register_user, verify_user, login_user, get_user_by_email, refresh_pair_of_tokens
 
 router = APIRouter(
     tags=['JWT Auth'],
@@ -35,4 +36,10 @@ async def login_user_route(user_login: Annotated[LoginUserSchema, Form()], sessi
 @router.get('/verify-email')
 async def verify_email(token: str, session: SESSION_DEP):
     return await verify_user(token, session)
+
+@router.get('/refresh')
+async def refresh_token(
+    credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)]
+):
+    return await refresh_pair_of_tokens(credentials)
 
