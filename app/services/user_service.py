@@ -1,15 +1,13 @@
 from logging import getLogger
 from typing import Optional
 
-from sqlalchemy import Result
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
-from app.exceptions import UserWithIdNotFound
+from app.exceptions import UserWithIdNotFound, UserWithEmailNotFound
 from app.models import User
 from logging_config import setup_logging
-from app.schemas import OutputUserSchema
 
 setup_logging()
 user_service_logger = getLogger('project.user_service')
@@ -23,14 +21,17 @@ async def get_user_by_email(email: str, session: AsyncSession) -> Optional[User]
         stmt = select(User).where(User.email == email)
 
         user_service_logger.info("Make query to db, try to find user by email")
-        result: Optional[User] = await session.scalar(stmt)
+        user: Optional[User] = await session.scalar(stmt)
 
     except SQLAlchemyError:
         user_service_logger.exception("Some problem with db: ")
         raise
 
-    user_service_logger.info("Return User instance or None after query")
-    return result
+    if not user:
+        raise UserWithEmailNotFound
+
+    user_service_logger.info("Return User by email")
+    return user
 
 
 
@@ -65,7 +66,7 @@ async def get_user_by_id(user_id:int, session: AsyncSession) -> User:
 
     if user is None:
         user_service_logger.error('User with ID not found')
-        raise UserWithIdNotFound(f'User with ID - {user_id} not found')
+        raise UserWithIdNotFound
 
     user_service_logger.info('Returning user by id')
     return user
