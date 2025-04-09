@@ -1,3 +1,4 @@
+from datetime import timedelta
 from pathlib import Path
 
 from pydantic import BaseModel
@@ -23,6 +24,8 @@ class JWTSettings(BaseModel):
     secret_key: str
     algorithm: str
     email_token_expire_minutes: int = 10
+    refresh_token_expire_minutes: timedelta = timedelta(minutes=5)
+    access_token_expire_minutes: timedelta = timedelta(minutes=1)
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_nested_delimiter='__')
