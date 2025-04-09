@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import settings
 from app.exceptions import UserWithEmailAlreadyExists, UserWithEmailNotFound, PasswordIsIncorrect, \
-    RefreshTokenIsNotExists
+    RefreshTokenDoesNotExist
 from app.models import User
 from app.schemas import CreateUserSchema, OutputUserSchema, LoginUserSchema, LoginOutputSchema
 from app.services import send_email, create_user, get_user_by_id
@@ -35,7 +35,7 @@ async def register_user(user: CreateUserSchema, session: AsyncSession) -> Output
 
     if exists_user is not None:
         auth_service_logger.error('User with same email already exists')
-        raise UserWithEmailAlreadyExists(f'User with email {user.email} already exists')
+        raise UserWithEmailAlreadyExists
 
     hashed_password: bytes = hash_password(user.password)
     hashed_password: str = hashed_password.decode()
@@ -108,7 +108,7 @@ async def login_user(user_login: LoginUserSchema, session: AsyncSession) -> Logi
     user = await get_user_by_email(email, session)
     if user is None:
         auth_service_logger.error('User with this email is not exists')
-        raise UserWithEmailNotFound(f'User with email-{email} not found')
+        raise UserWithEmailNotFound
 
     user_password = user.password_hash
 
@@ -117,7 +117,7 @@ async def login_user(user_login: LoginUserSchema, session: AsyncSession) -> Logi
 
     if not is_password_correct:
         auth_service_logger.error('Password is incorrect')
-        raise PasswordIsIncorrect('Password is incorrect')
+        raise PasswordIsIncorrect
 
     pair_token = _generate_pair_token(user.id)
 
@@ -142,7 +142,7 @@ async def refresh_pair_of_tokens(credentials: HTTPAuthorizationCredentials) -> L
     exists_refresh_token = await _is_refresh_token_exists(user_id)
 
     if exists_refresh_token is None:
-        raise RefreshTokenIsNotExists('This refresh token is not exists')
+        raise RefreshTokenDoesNotExist
 
     new_pair_token = _generate_pair_token(user_id)
 
