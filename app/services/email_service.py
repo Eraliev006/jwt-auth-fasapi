@@ -33,7 +33,7 @@ def send_email(
         server.login(login, password)
         server.sendmail(sender_email, receiver_email, msg.as_string())
         email_sender_logger.info('Email successfully sent')
-    except Exception as e:
+    except Exception:
         email_sender_logger.exception('Problem with sending email: ')
         raise
     finally:
