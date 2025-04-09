@@ -8,3 +8,4 @@ class LoginUserSchema(SQLModel):
 class LoginOutputSchema(SQLModel):
     refresh_token: str
     access_token: str
+    token_type: str
