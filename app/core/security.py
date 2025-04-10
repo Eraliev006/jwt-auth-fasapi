@@ -17,11 +17,10 @@ async def get_current_user(
         session: Annotated[AsyncSession, Depends(db_helper.session_getter)]
 ) -> OutputUserSchema:
     token = credentials.credentials
-    print(f'{token=}')
     payload = decode_jwt_token(token)
 
     if payload.get("type") != "access":
-        raise InvalidTokenType()
+        raise InvalidTokenType
 
     user_id:int = int(payload.get("sub"))
     user = await get_user_by_id(user_id, session)

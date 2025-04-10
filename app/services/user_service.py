@@ -44,7 +44,14 @@ async def create_user(session: AsyncSession, user: User) -> User:
         await session.commit()
         await session.refresh(user)
 
-    except SQLAlchemyError:
+    except IntegrityError as e:
+        user_service_logger.exception('Integrity error')
+        await session.rollback()
+
+        user_service_logger.info('Session rollback')
+        raise e
+
+    except SQLAlchemyError as e:
         user_service_logger.exception('Some problem with DB')
         await session.rollback()
 
