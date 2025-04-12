@@ -1,12 +1,11 @@
-import time
 from contextlib import asynccontextmanager
 from logging import getLogger
 
 import uvicorn
 from fastapi import FastAPI
-from starlette.requests import Request
 
 from app.core import db_helper
+from app.middlewares import LogginMiddleware
 from app.utils import redis_client
 from core import settings
 from api import router
@@ -39,27 +38,7 @@ async def lifespan(app:FastAPI):
 app = FastAPI(lifespan=lifespan)
 app.include_router(router)
 
-
-@app.middleware("http")
-async def log_all_requests(request: Request, call_next):
-    start_time = time.perf_counter()
-
-    try:
-        body = await request.body()
-        body_str = body.decode('utf-8') if body else None
-    except Exception:
-        body_str = "<unable to read body>"
-
-    response = await call_next(request)
-    process_time = time.perf_counter() - start_time
-
-    main_logger.info(
-        f"{request.client.host} - {request.method} {request.url.path} "
-        f"Status: {response.status_code} | Time: {process_time:.4f}s | Body: {body_str}"
-    )
-
-    response.headers["X-Process-Time"] = str(process_time)
-    return response
+app.add_middleware(LogginMiddleware)
 
 
 if __name__ == "__main__":
