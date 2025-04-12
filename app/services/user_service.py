@@ -1,7 +1,7 @@
 from logging import getLogger
 from typing import Optional
 
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
@@ -56,7 +56,7 @@ async def create_user(session: AsyncSession, user: User) -> User:
         await session.rollback()
 
         user_service_logger.info(f'Session rollback')
-        raise
+        raise e
 
     user_service_logger.info('commit query to db, user successfully created')
     return user
