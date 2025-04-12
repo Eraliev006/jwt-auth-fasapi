@@ -6,7 +6,6 @@ import redis.asyncio as redis
 from app.core import settings
 
 from logging_config import setup_logging
-setup_logging()
 
 redis_logger = getLogger('project.redis_client')
 

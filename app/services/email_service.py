@@ -5,8 +5,6 @@ from logging import getLogger
 from app.core import settings
 from logging_config import setup_logging
 
-setup_logging()
-
 email_sender_logger = getLogger('project.email_sender_service')
 
 def send_email(

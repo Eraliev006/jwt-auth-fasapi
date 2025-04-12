@@ -7,9 +7,7 @@ from datetime import timedelta
 
 from app.core import settings
 from app.exceptions import InvalidTokenError, InvalidSignatureError, ExpiredSignatureError
-from logging_config import setup_logging
 
-setup_logging()
 jwt_token_utils_logger = getLogger('project.jwt_token_utils')
 
 def generate_email_verify_token(

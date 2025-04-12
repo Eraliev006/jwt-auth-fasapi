@@ -4,9 +4,7 @@ from logging import getLogger
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine, async_sessionmaker, AsyncSession
 
 from app.core import settings
-from logging_config import setup_logging
 
-setup_logging()
 
 db_helper_logger = getLogger('project.database_helper')
 

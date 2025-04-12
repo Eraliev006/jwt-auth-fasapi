@@ -18,9 +18,7 @@ from app.utils import generate_email_verify_token, generate_verify_link, decode_
     create_token, redis_client
 from app.utils import hash_password
 
-from logging_config import setup_logging
 
-setup_logging()
 auth_service_logger = getLogger('project.auth_service')
 
 class TokenType(enum.Enum):
