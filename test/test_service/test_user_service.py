@@ -50,10 +50,11 @@ async def test_get_user_by_email_success(db_session):
 
 @pytest.mark.asyncio
 async def test_get_user_by_email_failed(db_session):
-    await __create_user(db_session)
+    some_email = random_email()
 
-    with pytest.raises(UserWithEmailNotFound) as user_error:
-        await get_user_by_email('Some another email', db_session)
+    user = await get_user_by_email(some_email, db_session)
+
+    assert user is None
 
 @pytest.mark.asyncio
 async def test_get_user_by_id_success(db_session):
@@ -70,8 +71,8 @@ async def test_get_user_by_id_success(db_session):
 async def test_get_user_by_id_failed(db_session):
     non_exists_id = 999999
 
-    with pytest.raises(UserWithIdNotFound):
-        await get_user_by_id(non_exists_id, session=db_session)
+    user = await get_user_by_id(non_exists_id, session=db_session)
+    assert user is None
 
 @pytest.mark.asyncio
 async def test_change_user_verify_status(db_session):
