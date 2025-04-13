@@ -5,10 +5,6 @@ from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoin
 from starlette.requests import Request
 from starlette.responses import Response
 
-from logging_config import setup_logging
-
-setup_logging()
-
 log_request_logger = getLogger('project.log_request_logger')
 
 class LogginMiddleware(BaseHTTPMiddleware):

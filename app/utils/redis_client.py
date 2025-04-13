@@ -5,8 +5,6 @@ import redis.asyncio as redis
 
 from app.core import settings
 
-from logging_config import setup_logging
-
 redis_logger = getLogger('project.redis_client')
 
 class RedisClient:
@@ -37,7 +35,7 @@ class RedisClient:
 
     async def dispose(self):
         redis_logger.info('Dispose connection with redis')
-        return await self.redis_client.close()
+        return await self.redis_client.aclose()
 
 
 redis_client = RedisClient(settings.redis.redis_host, settings.redis.redis_port)

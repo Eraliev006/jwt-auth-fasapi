@@ -2,8 +2,6 @@ from logging import getLogger
 
 import bcrypt
 
-from logging_config import setup_logging
-
 password_utils_logger = getLogger('project.password')
 
 def hash_password(password: str) -> bytes:
