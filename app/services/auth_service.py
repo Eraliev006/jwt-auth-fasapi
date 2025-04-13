@@ -5,6 +5,7 @@ from typing import Optional, Any
 
 from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.background import BackgroundTasks
 
 from app.core import settings
 from app.exceptions import UserWithEmailAlreadyExists, UserWithEmailNotFound, PasswordIsIncorrect, \
@@ -25,7 +26,17 @@ class TokenType(enum.Enum):
     ACCESS = 'access'
     REFRESH = 'refresh'
 
-async def register_user(user: CreateUserSchema, session: AsyncSession) -> OutputUserSchema:
+def __generate_and_send_email_verify_link(email: str, user_id: int):
+    auth_service_logger.info('Call send email function in background tasks')
+
+    token = generate_email_verify_token({'sub': email,'user_id': user_id})
+    link = generate_verify_link(token)
+    send_email(email, 'Confirm email',
+               body=f"Hello press the link to confirm your gmail: {link}")
+
+    auth_service_logger.info('Call send email function in background tasks finished')
+
+async def register_user(user: CreateUserSchema, session: AsyncSession, background_tasks: BackgroundTasks) -> OutputUserSchema:
     auth_service_logger.info('Register user')
 
     auth_service_logger.info('Checking is user with email already exists')
@@ -50,16 +61,7 @@ async def register_user(user: CreateUserSchema, session: AsyncSession) -> Output
 
     auth_service_logger.info('Create user method finished')
 
-    email = created_user.email
-
-    auth_service_logger.info('Call send email function')
-
-    token = generate_email_verify_token({'sub': email,'user_id': created_user.id})
-    link = generate_verify_link(token)
-    send_email(email, 'Confirm email',
-               body=f"Hello press the link to confirm your gmail: {link}")
-
-    auth_service_logger.info('email function ended')
+    background_tasks.add_task(__generate_and_send_email_verify_link, created_user.email, created_user.id)
 
     auth_service_logger.info('Register function is end')
     return OutputUserSchema(**created_user.model_dump())
