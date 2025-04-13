@@ -13,7 +13,7 @@ LOGGING_CONFIG = {
         "file": {
             "level": "DEBUG",
             "class": "logging.FileHandler",
-            "filename": "project.log",
+            "filename": "jwt_auth.log",
             "formatter": "default",
             "mode": "a",
         },
