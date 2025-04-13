@@ -16,3 +16,6 @@ __pycache__/
 # Настройки IDE
 .idea/
 .vscode/
+
+# Alembic
+alembic/versions/*.pyc
