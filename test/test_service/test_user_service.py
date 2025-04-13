@@ -2,7 +2,6 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.exceptions import UserWithEmailNotFound, UserWithIdNotFound
 from app.models import User
 from app.services import create_user, get_user_by_email, get_user_by_id
 from app.services.user_service import change_user_verify_status
