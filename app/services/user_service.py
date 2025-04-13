@@ -5,7 +5,6 @@ from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
-from app.exceptions import UserWithIdNotFound
 from app.models import User
 
 user_service_logger = getLogger('project.user_service')
@@ -23,7 +22,7 @@ async def get_user_by_email(email: str, session: AsyncSession) -> Optional[User]
         user_service_logger.exception("Some problem with db: ")
         raise
 
-    user_service_logger.info("Return User by email")
+    user_service_logger.info(f"Return User by email {user}")
     return user
 
 
