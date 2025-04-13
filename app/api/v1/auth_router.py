@@ -5,10 +5,11 @@ from fastapi.params import Depends
 from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
+from starlette.background import BackgroundTasks
 
 from app.core import db_helper, security
-from app.exceptions import UserNotVerifiedEmail
-from app.schemas import CreateUserSchema, LoginUserSchema, OutputUserSchema, ErrorResponse
+from app.exceptions import UserNotVerifiedEmail, UserWithEmailNotFound
+from app.schemas import CreateUserSchema, LoginUserSchema, OutputUserSchema, ErrorResponse, LoginOutputSchema
 from app.services import register_user, verify_user, login_user, get_user_by_email, refresh_pair_of_tokens
 
 router = APIRouter(
@@ -17,8 +18,10 @@ router = APIRouter(
 )
 
 SESSION_DEP = Annotated[AsyncSession, Depends(db_helper.session_getter)]
-async def check_is_user_verify_email(user_login: LoginUserSchema, session: SESSION_DEP):
+async def check_is_user_verify_email(user_login: Annotated[LoginUserSchema, Form()], session: SESSION_DEP):
     user = await get_user_by_email(user_login.email, session)
+    if not user:
+        raise UserWithEmailNotFound
     if not user.is_verified:
         raise UserNotVerifiedEmail
 
@@ -34,18 +37,18 @@ async def check_is_user_verify_email(user_login: LoginUserSchema, session: SESSI
       },
       500: {
           "model": ErrorResponse,
-         "description": "Internal Server Error"
+        "description": "Internal Server Error"
      }
     },
     summary='Register new user',
     description='Register new user. After you should verify your email than login'
 )
-async def register_user_route(user: CreateUserSchema, session: SESSION_DEP):
-    return await register_user(user, session)
+async def register_user_route(user: CreateUserSchema, session: SESSION_DEP, background_tasks: BackgroundTasks):
+    return await register_user(user, session, background_tasks)
 
 @router.post(
     '/login',
-    response_model=LoginUserSchema,
+    response_model=LoginOutputSchema,
     status_code=status.HTTP_200_OK,
     responses={
         403: {
@@ -74,7 +77,7 @@ async def verify_email(token: str, session: SESSION_DEP):
 
 @router.get(
     '/refresh',
-    response_model=LoginUserSchema,
+    response_model=LoginOutputSchema,
     responses={
         401: {
             "model": ErrorResponse,
