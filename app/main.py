@@ -7,12 +7,10 @@ from fastapi import FastAPI
 from app.core import db_helper
 from app.middlewares import LogginMiddleware
 from app.utils import redis_client
-from core import settings
-from api import router
+from app.core import settings
+from app.api import router
 
 from logging_config import setup_logging
-
-setup_logging()
 
 main_logger = getLogger('project.main')
 
@@ -42,6 +40,7 @@ app.add_middleware(LogginMiddleware)
 
 
 if __name__ == "__main__":
+    setup_logging()
     main_logger.info('Server start')
     uvicorn.run('main:app', host=settings.HOST, port=settings.PORT, reload=False)
     main_logger.info('Server stopped')
